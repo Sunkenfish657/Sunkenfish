@@ -1,14 +1,38 @@
+  GNU nano 8.2                            index.html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uji Coba</title>
+    <title>Website Interaktif</title>
+    <style>
+        .page { display: none; }
+        .active { display: block; }
+    </style>
 </head>
 <body>
-    <h1>WEBSITE PERTAMA SELESAI JUGA!!</h1>
-    <p>Ini adalah website pertama yang saya upload di internet</p>
-    <p>akhirnya saya telah mempelajari dasar dari dasar ilmu pemrograman</p>
-    <a href="https://chat.whatsapp.com/E3FNTfvWChJCa4tobscs8e">whatsapp</a>
+    <div id="page1" class="page active">
+        <h1>Halaman 1</h1>
+        <p>Ini adalah halaman pertama.</p>
+        <button onclick="showPage('page2')">Ke Halaman 2</button>
+    </div>
+
+    <div id="page2" class="page">
+        <h1>Halaman 2</h1>
+        <p>Ini adalah halaman kedua.</p>
+        <button onclick="showPage('page1')">Kembali ke Halaman 1</button>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+    </script>
 </body>
 </html>
+
+
