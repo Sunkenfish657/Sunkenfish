@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pencocokan Hash Foto (SHA-256)</title>
+  <title>Verifikasi Foto dengan Hash (SHA-256)</title>
   <style>
     body { font-family: sans-serif; margin: 2em; background: #f5f5f5; }
     h1 { color: #333; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-width: 700px; margin-bottom: 2em; }
-    input[type="file"] { margin: 1em 0; }
-    #hash1, #hash2 { font-family: monospace; background: #eee; padding: 10px; border-radius: 8px; word-wrap: break-word; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-width: 700px; }
+    input[type="file"], input[type="text"] { margin: 1em 0; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    #hashGenerated, #hashProvided { font-family: monospace; background: #eee; padding: 10px; border-radius: 8px; word-wrap: break-word; }
     .result { font-weight: bold; font-size: 1.2em; margin-top: 1em; }
     img { max-width: 200px; margin-top: 1em; border-radius: 8px; }
     .match { color: green; }
@@ -17,19 +17,18 @@
 </head>
 <body>
   <div class="card">
-    <h1>🔒 Pencocokan Hash Foto (SHA-256)</h1>
+    <h1>🔒 Verifikasi Foto dengan Hash (SHA-256)</h1>
     
-    <h2>Foto 1</h2>
-    <input type="file" id="file1" accept="image/*">
-    <p><strong>Hash:</strong></p>
-    <p id="hash1">Belum ada file</p>
-    <div id="preview1"></div>
+    <h2>Upload Foto</h2>
+    <input type="file" id="fileInput" accept="image/*">
+    <p><strong>Hash dari Foto:</strong></p>
+    <p id="hashGenerated">Belum ada file</p>
+    <div id="preview"></div>
 
-    <h2>Foto 2</h2>
-    <input type="file" id="file2" accept="image/*">
-    <p><strong>Hash:</strong></p>
-    <p id="hash2">Belum ada file</p>
-    <div id="preview2"></div>
+    <h2>Masukkan Hash dari Pemilik</h2>
+    <input type="text" id="hashInput" placeholder="Tempel hash SHA-256 di sini">
+    <p><strong>Hash Pemilik:</strong></p>
+    <p id="hashProvided">Belum ada input</p>
 
     <div class="result" id="result">⚪ Belum dibandingkan</div>
   </div>
@@ -42,41 +41,47 @@
       return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    async function handleFile(inputId, hashId, previewId, store) {
-      const fileInput = document.getElementById(inputId);
-      const file = fileInput.files[0];
+    let generatedHash = "";
+    let providedHash = "";
+
+    // handle foto upload
+    document.getElementById("fileInput").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
       if (!file) return;
 
       // preview foto
       const reader = new FileReader();
       reader.onload = e => {
-        document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" alt="preview">`;
+        document.getElementById("preview").innerHTML = `<img src="${e.target.result}" alt="preview">`;
       };
       reader.readAsDataURL(file);
 
       // buat hash
-      const hashHex = await fileToSHA256(file);
-      document.getElementById(hashId).innerText = hashHex;
-      store.hash = hashHex;
+      generatedHash = await fileToSHA256(file);
+      document.getElementById("hashGenerated").innerText = generatedHash;
       checkMatch();
-    }
+    });
 
+    // handle hash input manual
+    document.getElementById("hashInput").addEventListener("input", (event) => {
+      providedHash = event.target.value.trim().toLowerCase();
+      document.getElementById("hashProvided").innerText = providedHash || "Belum ada input";
+      checkMatch();
+    });
+
+    // cek apakah sama
     function checkMatch() {
       const result = document.getElementById("result");
-      if (store1.hash && store2.hash) {
-        if (store1.hash === store2.hash) {
-          result.innerHTML = "✅ Hash cocok (file sama persis)";
+      if (generatedHash && providedHash) {
+        if (generatedHash === providedHash) {
+          result.innerHTML = "✅ Foto valid: hash cocok";
           result.className = "result match";
         } else {
-          result.innerHTML = "❌ Hash berbeda (file berbeda)";
+          result.innerHTML = "❌ Foto tidak valid: hash berbeda";
           result.className = "result mismatch";
         }
       }
     }
-
-    const store1 = {}, store2 = {};
-    document.getElementById("file1").addEventListener("change", () => handleFile("file1","hash1","preview1",store1));
-    document.getElementById("file2").addEventListener("change", () => handleFile("file2","hash2","preview2",store2));
   </script>
 </body>
 </html>
