@@ -2,24 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Foto Hasher (SHA-256)</title>
+  <title>Pencocokan Hash Foto (SHA-256)</title>
   <style>
     body { font-family: sans-serif; margin: 2em; background: #f5f5f5; }
     h1 { color: #333; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-width: 600px; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); max-width: 700px; margin-bottom: 2em; }
     input[type="file"] { margin: 1em 0; }
-    #hash { font-family: monospace; background: #eee; padding: 10px; border-radius: 8px; word-wrap: break-word; }
+    #hash1, #hash2 { font-family: monospace; background: #eee; padding: 10px; border-radius: 8px; word-wrap: break-word; }
+    .result { font-weight: bold; font-size: 1.2em; margin-top: 1em; }
     img { max-width: 200px; margin-top: 1em; border-radius: 8px; }
+    .match { color: green; }
+    .mismatch { color: red; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>🔒 Foto Hasher (SHA-256)</h1>
-    <p>Pilih foto untuk membuat hash SHA-256:</p>
-    <input type="file" id="fileInput" accept="image/*">
+    <h1>🔒 Pencocokan Hash Foto (SHA-256)</h1>
+    
+    <h2>Foto 1</h2>
+    <input type="file" id="file1" accept="image/*">
     <p><strong>Hash:</strong></p>
-    <p id="hash">Belum ada file</p>
-    <div id="preview"></div>
+    <p id="hash1">Belum ada file</p>
+    <div id="preview1"></div>
+
+    <h2>Foto 2</h2>
+    <input type="file" id="file2" accept="image/*">
+    <p><strong>Hash:</strong></p>
+    <p id="hash2">Belum ada file</p>
+    <div id="preview2"></div>
+
+    <div class="result" id="result">⚪ Belum dibandingkan</div>
   </div>
 
   <script>
@@ -30,21 +42,41 @@
       return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    document.getElementById("fileInput").addEventListener("change", async (event) => {
-      const file = event.target.files[0];
+    async function handleFile(inputId, hashId, previewId, store) {
+      const fileInput = document.getElementById(inputId);
+      const file = fileInput.files[0];
       if (!file) return;
-      
-      // tampilkan preview foto
+
+      // preview foto
       const reader = new FileReader();
       reader.onload = e => {
-        document.getElementById("preview").innerHTML = `<img src="${e.target.result}" alt="preview">`;
+        document.getElementById(previewId).innerHTML = `<img src="${e.target.result}" alt="preview">`;
       };
       reader.readAsDataURL(file);
 
       // buat hash
       const hashHex = await fileToSHA256(file);
-      document.getElementById("hash").innerText = hashHex;
-    });
+      document.getElementById(hashId).innerText = hashHex;
+      store.hash = hashHex;
+      checkMatch();
+    }
+
+    function checkMatch() {
+      const result = document.getElementById("result");
+      if (store1.hash && store2.hash) {
+        if (store1.hash === store2.hash) {
+          result.innerHTML = "✅ Hash cocok (file sama persis)";
+          result.className = "result match";
+        } else {
+          result.innerHTML = "❌ Hash berbeda (file berbeda)";
+          result.className = "result mismatch";
+        }
+      }
+    }
+
+    const store1 = {}, store2 = {};
+    document.getElementById("file1").addEventListener("change", () => handleFile("file1","hash1","preview1",store1));
+    document.getElementById("file2").addEventListener("change", () => handleFile("file2","hash2","preview2",store2));
   </script>
 </body>
-    </html>
+</html>
